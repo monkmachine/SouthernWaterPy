@@ -9,12 +9,13 @@ if __name__ == '__main__':
     import json
     from selenium.webdriver.common.action_chains import ActionChains
 
+    pages = 1
 
     def process_log(log, file_out):
         log = json.loads(log["message"])["message"]
         if "Network.responseReceived" == log["method"] and "params" in log.keys() and "application/json" in \
                 log["params"]["response"]['mimeType']:
-            if "GetHistoricSpills" in log["params"]["response"]['url']:
+            if "GetHistoricSpills" in log["params"]["response"]['url'] and "activity=Genuine" not in log["params"]["response"]['url']:
                 file_out.write(driver.execute_cdp_cmd('Network.getResponseBody', {'requestId': log["params"]["requestId"]})["body"] + ",")
                 print(log["params"]["response"]['url'])
                 print(driver.execute_cdp_cmd('Network.getResponseBody', {'requestId': log["params"]["requestId"]})["body"])
@@ -24,6 +25,16 @@ if __name__ == '__main__':
     options.set_capability(
         "goog:loggingPrefs", {"performance": "ALL", "browser": "ALL"}
     )
+
+
+    def get_no_pages(log):
+        log = json.loads(log["message"])["message"]
+        if "Network.responseReceived" == log["method"] and "params" in log.keys() and "application/json" in \
+                log["params"]["response"]['mimeType']:
+            if "GetHistoricSpills" in log["params"]["response"]['url'] and "activity=Genuine" not in log["params"]["response"]['url']:
+                json_object = json.loads(driver.execute_cdp_cmd('Network.getResponseBody', {'requestId': log["params"]["requestId"]})["body"])
+                global pages
+                pages = (json_object["totalPages"])
 
     driver = uc.Chrome(options=options)
     driver.maximize_window()
@@ -36,14 +47,20 @@ if __name__ == '__main__':
     driver.execute_script("arguments[0].scrollIntoView();", driver.find_element(By.ID, 'btnHistoricSpillsDetails'))
     driver.find_element(By.ID, 'btnHistoricSpillsDetails').click()
     time.sleep(10)
-    driver.execute_script("arguments[0].scrollIntoView();", driver.find_element(By.ID, 'btnNext'))
-    driver.find_element(By.ID, 'btnNext').click()
-    time.sleep(10)
-    driver.execute_script("arguments[0].scrollIntoView();", driver.find_element(By.ID, 'btnNext'))
-    driver.find_element(By.ID, 'btnNext').click()
-    time.sleep(10)
-    driver.execute_script("arguments[0].scrollIntoView();", driver.find_element(By.ID, 'btnNext'))
-    driver.find_element(By.ID, 'btnNext').click()
+    log_entries = driver.get_log("performance")
+    for entry in log_entries:
+
+        try:
+            obj_serialized: str = entry.get("message")
+            get_no_pages(entry)
+            # file.write(obj_serialized + ",")
+        except Exception as e:
+            raise e from None
+    print(pages)
+    for i in range(pages):
+        driver.execute_script("arguments[0].scrollIntoView();", driver.find_element(By.ID, 'btnNext'))
+        driver.find_element(By.ID, 'btnNext').click()
+        time.sleep(10)
     log_entries = driver.get_log("performance")
     time.sleep(10)
     for entry in log_entries:
