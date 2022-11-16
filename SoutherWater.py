@@ -65,6 +65,7 @@ if __name__ == '__main__':
             # file.write(obj_serialized + ",")
         except Exception as e:
             raise e from None
+
     print(pages)
     for i in range(pages):
         while True:
