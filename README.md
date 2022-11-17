@@ -1,7 +1,7 @@
 # SouthernWaterPy
 
 ## Description
-This script will download the spills data fom the Southern Water Beach Bouy Website: https://www.southernwater.co.uk/water-for-life/our-bathing-waters/beachbuoy
+This script will download the spills data to CSV fom the Southern Water Beach Bouy Website: https://www.southernwater.co.uk/water-for-life/our-bathing-waters/beachbuoy
 
 ## Pre-Requisites
 * Python must be installed (https://www.python.org/ftp/python/3.11.0/python-3.11.0-amd64.exe)  
