@@ -26,8 +26,8 @@ if __name__ == '__main__':
                 for item in items:
                     dict_copy = copy.deepcopy(item)
                     itemsarray.append(dict_copy)
-                print(log["params"]["response"]['url'])
-                print(driver.execute_cdp_cmd('Network.getResponseBody', {'requestId': log["params"]["requestId"]})["body"])
+# print(log["params"]["response"]['url'])
+# print(driver.execute_cdp_cmd('Network.getResponseBody', {'requestId': log["params"]["requestId"]})["body"])
 
 
     def get_no_pages(log):
