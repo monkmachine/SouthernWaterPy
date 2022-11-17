@@ -1,3 +1,5 @@
+
+
 if __name__ == '__main__':
     import undetected_chromedriver as uc
     from selenium import webdriver
@@ -5,11 +7,14 @@ if __name__ == '__main__':
     from selenium.webdriver.support.ui import Select
     import time
     import json
+    import csv
+    import copy
 
     pages = 1
+    itemsarray = []
 
 
-    def process_log(log, file_out):
+    def process_log(log):
         log = json.loads(log["message"])["message"]
         if "Network.responseReceived" == log["method"] and "params" in log.keys() and "application/json" in \
                 log["params"]["response"]['mimeType']:
@@ -19,11 +24,11 @@ if __name__ == '__main__':
                     driver.execute_cdp_cmd('Network.getResponseBody', {'requestId': log["params"]["requestId"]})[
                         "body"])
                 items = (json_object["items"])
-                json_string = json.dumps(items)
-                file_out.write(json_string)
+                for item in items:
+                    dict_copy = copy.deepcopy(item)
+                    itemsarray.append(dict_copy)
                 print(log["params"]["response"]['url'])
-                print(driver.execute_cdp_cmd('Network.getResponseBody', {'requestId': log["params"]["requestId"]})[
-                          "body"])
+                print(driver.execute_cdp_cmd('Network.getResponseBody', {'requestId': log["params"]["requestId"]})["body"])
 
 
     def get_no_pages(log):
@@ -47,7 +52,6 @@ if __name__ == '__main__':
     driver.maximize_window()
     driver.get('https://www.southernwater.co.uk/water-for-life/our-bathing-waters/beachbuoy')
     time.sleep(15)
-    file = open("test.json", "w")
     driver.execute_script("arguments[0].scrollIntoView();", driver.find_element(By.ID, 'ddlActivity'))
     releaseType = Select(driver.find_element(By.ID, 'ddlActivity'))
     releaseType.select_by_visible_text("All Releases")
@@ -61,13 +65,12 @@ if __name__ == '__main__':
             obj_serialized: str = entry.get("message")
             HistoricSpills = get_no_pages(entry)
             if HistoricSpills:
-                process_log(entry, file)
-            # file.write(obj_serialized + ",")
+                process_log(entry)
         except Exception as e:
             raise e from None
 
     print(pages)
-    for i in range(pages):
+    for i in range((pages-1)):
         while True:
             try:
                 driver.execute_script("arguments[0].scrollIntoView();", driver.find_element(By.ID, 'btnNext'))
@@ -84,13 +87,14 @@ if __name__ == '__main__':
 
         try:
             obj_serialized: str = entry.get("message")
-            process_log(entry, file)
-            # file.write(obj_serialized + ",")
+            process_log(entry)
         except Exception as e:
             raise e from None
-
+    file_nameString = time.strftime("%Y%m%d-%H%M%S") + "_Spills.csv"
+    with open(file_nameString, 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=itemsarray[0].keys())
+        writer.writeheader()
+        writer.writerows(itemsarray)
     file.close()
-    time.sleep(100)
-    # driver.get('https://www.southernwater.co.uk/gateway/Beachbuoy/1.0/api/v1.0/Spills/GetAllAreas')
-    # driver.quit()
-    # print("Program Ended")
+    driver.quit()
+    print("Program Ended")
