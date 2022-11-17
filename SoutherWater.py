@@ -11,7 +11,7 @@ if __name__ == '__main__':
     import copy
 
     pages = 1
-    itemsarray = []
+    items_array = []
 
     def process_log(log):
         log = json.loads(log["message"])["message"]
@@ -25,7 +25,7 @@ if __name__ == '__main__':
                 items = (json_object["items"])
                 for item in items:
                     dict_copy = copy.deepcopy(item)
-                    itemsarray.append(dict_copy)
+                    items_array.append(dict_copy)
 # print(log["params"]["response"]['url'])
 # print(driver.execute_cdp_cmd('Network.getResponseBody', {'requestId': log["params"]["requestId"]})["body"])
 
@@ -91,9 +91,8 @@ if __name__ == '__main__':
             raise e from None
     file_nameString = time.strftime("%Y%m%d-%H%M%S") + "_Spills.csv"
     with open(file_nameString, 'w', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=itemsarray[0].keys())
+        writer = csv.DictWriter(f, fieldnames=items_array[0].keys())
         writer.writeheader()
-        writer.writerows(itemsarray)
-    file.close()
+        writer.writerows(items_array)
     driver.quit()
     print("Program Ended")
