@@ -94,5 +94,5 @@ if __name__ == '__main__':
         writer = csv.DictWriter(f, fieldnames=items_array[0].keys())
         writer.writeheader()
         writer.writerows(items_array)
-    driver.quit()
+#    driver.quit()
     print("Program Ended")
