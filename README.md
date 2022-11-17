@@ -12,7 +12,7 @@
 pip install -r requirements.txt
 ```
 This will install the required python modules
-The run the following command to execute the python script
+Then run the following command to execute the python script
 ```
 python SoutherWater.py
 ```
