@@ -13,7 +13,6 @@ if __name__ == '__main__':
     pages = 1
     itemsarray = []
 
-
     def process_log(log):
         log = json.loads(log["message"])["message"]
         if "Network.responseReceived" == log["method"] and "params" in log.keys() and "application/json" in \
