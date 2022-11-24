@@ -1,16 +1,18 @@
 
+import undetected_chromedriver as uc
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select
+import argparse
+import time
+import json
+import csv
+import copy
+import sys
 
-if __name__ == '__main__':
-    import undetected_chromedriver as uc
-    from selenium import webdriver
-    from selenium.webdriver.common.by import By
-    from selenium.webdriver.support.ui import Select
-    import time
-    import json
-    import csv
-    import copy
-
-    pages = 1
+def get_location(location):
+    global pages
+    pages  = 1
     items_array = []
 
     def process_log(log):
@@ -54,6 +56,10 @@ if __name__ == '__main__':
     driver.execute_script("arguments[0].scrollIntoView();", driver.find_element(By.ID, 'ddlActivity'))
     releaseType = Select(driver.find_element(By.ID, 'ddlActivity'))
     releaseType.select_by_visible_text("All Releases")
+
+    if location is not None:
+        locationSelect = Select(driver.find_element(By.ID, 'ddlSiteName'))
+        locationSelect.select_by_visible_text(location)
     driver.execute_script("arguments[0].scrollIntoView();", driver.find_element(By.ID, 'btnHistoricSpillsDetails'))
     driver.find_element(By.ID, 'btnHistoricSpillsDetails').click()
     time.sleep(10)
@@ -68,7 +74,7 @@ if __name__ == '__main__':
         except Exception as e:
             raise e from None
 
-    print(pages)
+    print(f"Pages to retrieve: {pages}")
     for i in range((pages-1)):
         while True:
             try:
@@ -78,7 +84,12 @@ if __name__ == '__main__':
             except:
                 time.sleep(1)
                 continue
+            print(".", end="")
+            if i % 100 == 0 and i != 0 :
+                print()
+            sys.stdout.flush()
             break
+    print()
 
     log_entries = driver.get_log("performance")
     time.sleep(10)
@@ -89,10 +100,30 @@ if __name__ == '__main__':
             process_log(entry)
         except Exception as e:
             raise e from None
-    file_nameString = time.strftime("%Y%m%d-%H%M%S") + "_Spills.csv"
+    if location is None:
+        file_nameString = time.strftime("%Y%m%d-%H%M%S") + "_Spills.csv"
+    else:
+        file_nameString = f"{time.strftime('%Y%m%d-%H%M%S')}_{location.replace(' ', '_')}_Spills.csv"
     with open(file_nameString, 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=items_array[0].keys())
         writer.writeheader()
         writer.writerows(items_array)
-#    driver.quit()
+    print(f"Written {file_nameString}")
+    try:
+        driver.quit()
+    except:
+        pass
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--location', action='append', help="As it appears in the drop down box, Eg CHICHESTER HARBOUR. Can be specified multiple times")
+    args = parser.parse_args()
+    if args.location is not None:
+        print(f"Getting data for specific location(s) {', '.join(args.location)} if more than one are specified, they will be stored in separate files")
+        for l in args.location:
+            get_location(l)
+    else:
+        print("No location specified, getting data for all locations")
+        get_location(None)
     print("Program Ended")
